@@ -1,4 +1,5 @@
 DRIVELAN
+
 Shared folders on the local network, without the cloud and without complexity.
 
 DriveLan is an open-source desktop application for Windows and Linux that allows users to create shared folders on the local area network (LAN) and to access folders shared by other users in a simple and secure manner. It is intended as an alternative to native Windows file sharing (SMB) and to cloud storage services. Files remain within the local network, and users are not required to configure system permissions, map network drives, or know IP addresses.
