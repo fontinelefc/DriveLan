@@ -1,0 +1,171 @@
+Quero criar um aplicativo desktop.
+
+O aplicativo será de **compartilhamento de arquivos em rede LAN**, com o nome **DriveLan**.
+
+## Público usuário do sistema
+
+- Pessoas que desejam compartilhar arquivos na rede interna, principalmente em ambientes corporativos, de forma direta, sem necessidade de fazer upload e download de nuvem sempre que precisarem de um compartilhamento.
+- Ideal para:
+  + Ambientes corporativos
+  + Transferência de arquivos direta em rede LAN
+  + Arquitetura de pastas compartilhadas na rede interna
+
+## Objetivo principal
+
+- O objetivo do sistema é ajudar o acesso a arquivos de outros hosts da rede de forma simples, visual e prática.
+
+- O sistema deve permitir que usuários criem uma pasta compartilhada e transfiram arquivos para dentro dela, além de também visualizarem pastas compartilhadas criadas por outros usuários do mesmo aplicativo na rede LAN.
+
+- A ideia é criar um aplicativo fácil de entender, e simples de operar, para que pessoas consigam usar no dia a dia. Ele deve funcionar como um gerenciador de pasta compartilgada em rede: o usuário abre o aplicativo, consegue visualizar se já existe alguma pasta compartilhada na sua rede interna, escolhe se:
+  + Quer acessar alguma pasta compartilhada que ele esteja visualizando no seu app como cliente
+  + Quer criar uma nova pasta compartilhada no modo de servidor da pasta
+  + Quer sair de alguma pasta compartilhada que já tenha acesso
+  + Quer transferir arquivos para dentro de uma pasta compartilhada ou de dentro dela para seu computador (host) local
+  + Quer abrir e/ou editar algum arquivo ou pasta de dentro da pasta raiz do compartilhamento
+
+- Mesmo sendo na arquitetura cliente-servidor, cada usuário poderá alternar entre os modos de servidor de pasta ou usuário cliente, ou mesmo usar o aplicativo de modo híblido, sendo ao mesmo tempo servidor de uma pasta e cliente de outra.
+
+## Primeira versão
+
+Na primeira versão, imagino que o sistema deve permitir:
+
+### Visualização de pastas na rede
+
+- Identificar a qual rede LAN o usuário está logado.
+
+- Exibir pastas já criadas e compartilhadas
+
+- Exibir quais pastas compartilhadas o usuário tem acesso como cliente
+
+- Exibir quais pastas compartilhadas o usuário é servidor
+
+### Gestão de usuários
+
+#### Cadastro de usuários
+
+- Cadastrar o usuário de maneira simples no aplicativo, com informações de nome do usuário e PIN de 4 dígitos.
+
+- Haverá apenas um tipo de usuário, podendo o mesmo estar em modo cliente, modo servidor ou híbrido.
+
+#### Modo servidor
+- O usuário em modo **servidor** poderá criar uma pasta compartilhada na rede e ter todas as permissões dela como:
+  + Definir o PIN de acesso inicial a pasta
+  + Visualizar todo os outros usuários que tem acesso a pasta
+  + Remover algum usuário do acesso a sua pasta
+  + Trocar o PIN de acesso a sua pasta
+  + Apagar uma pasta criada por ele quando achar necessário
+  + Ler, editar e excluir pasta e conteúdo da pasta criada por ele
+
+#### Modo cliente
+- O usuário em modo **cliente** poderá:
+  + Visualizar todas as pastas em compartilhamento na rede
+  + Se conectar a uma ou mais pastas mediante PIN da respectiva pasta
+  + Ler, editar e excluir o **conteúdo** da pasta
+  + Permanecer conectado e com acesso a pasta por tempo indeterminado, até que seja removido o seu acesso a ela por parte do usuário servidor, ou que ela seja excluída pelo servidor da pasta
+
+#### Recursos de gestão de usuários
+- Controle de acesso por nome de usuário e PIN de usuário com tela de login.
+- Tela de cadastro de usuário.
+- Não existirá forma de reaver o PIN em caso de esquecimento.
+- Caso o usuário esqueça e erre o PIN por 5x seguidas, seu usuário deverá ser excluído de forma automática do aplicativo
+- Permitir que usuários alterem seus próprios dados básicos da conta.
+- Permitir que usuários alterem seu próprio PIN.
+- Todas as informações de criação, edição, exclusão de pastas e arquivos deverão ser armazenadas com data e horário em tabela de auditoria do sistema, permitindo ao servidor da pasta visualizar qual usuários alterou os arquivos da sua pasta, tudo isso em tela própria de auditoria da pasta.
+- O aplicativo tenha uma chave de segurança, que dará acesso de administrador ao usuário, esta deverá ser usada como ultimo recurso de segurança para os administradores de sistema e analistas de TI.
+
+### Dashboard
+
+- Exibir a conta de usuário logada
+- Exibir o nome do host em que o usuário está conectado
+- Exibir a rede a qual o host está conectado
+- Exibir as pastas que o usuário é servidor
+- Exibir todas as pastas compartilhadas do DriveLan estão disponíveis na rede
+- Exibir ícone de configurações de pasta
+- Exibir ícone de configuração de usuário
+
+### Outros recursos
+  
+- Log de erros para facilitar diagnóstico durante o desenvolvimento.
+  + Somente em arquivos.
+  + Proteger pastas de logs para acessar através de navegador.
+  + Criar subpastas por mês e ano
+  + Criar arquivo de log por dia.
+  + Permitir rotina de limpeza de logs acessível apenas pelo administrador.
+  + Permitir ativar e desativar log de erro através de arquivo de configuração.
+- Auditoria simples para identificar quem criou ou registro, quando criou, quem alterou e quando alterou. os registros sobre exclusão já foram definidos no **soft delete**.
+- Interface simples, responsiva e fácil de usar em computador e celular.
+- Validações básicas para evitar lançamentos sem valor, sem data, sem tipo ou sem categoria.
+- Mensagens claras de sucesso e erro.
+- Apenas o usuário com acesso de administrador deve ter acesso a uma janela especial com abas de acesso a logs de erros, aba de auditoria de pastas compartilhadas e acesso a resgate e alteração de senha do usuário comum cadastrado no app.
+
+### Chave de Segurança do Aplicativo
+- SenhaTI10@fontinele
+- Esta chave não deve ser possível de alteração
+- Esta chave não deve ser possível de visialização em parte alguma do Aplicativo
+- Ao usar o atalho de teclado "Shift + F12", uma pequena janela deve ser aberta na tela do app e ficar em primeiro plano, simulando um terminal, em que o usuário deverá digitar a chave do aplicativo para assim ter acesso como administrador.
+
+---
+
+Atue como analista de sistemas experiente.
+
+Antes de criar qualquer documento final, me ajude a organizar a ideia do sistema por meio de uma entrevista incremental.
+
+Ao longo da entrevista, investigue e organize as informações necessárias para identificar:
+
+1. qual problema o sistema resolve;
+2. quem usará o sistema;
+3. quais funcionalidades são essenciais para a primeira versão;
+4. quais funcionalidades podem ficar para uma versão futura;
+5. quais informações precisam ser armazenadas;
+6. quais regras de negócio já podem ser percebidas;
+7. quais dúvidas precisam ser respondidas antes da criação do PRD;
+8. quais recursos normalmente existem em sistemas desse tipo.
+
+Use linguagem simples e explique termos técnicos quando aparecerem.
+
+Faça uma pesquisa sobre recursos normalmente adicionados a sistemas desse tipo.
+
+Ao pesquisar recursos comuns, não inclua automaticamente todos eles no escopo.
+
+Na primeira resposta, classifique as sugestões em três grupos:
+
+1. essencial para a primeira versão;
+2. útil, mas pode ficar para depois;
+3. avançado demais para este primeiro projeto.
+
+Explique brevemente o motivo de cada classificação.
+
+Depois dessa primeira classificação, não repita a lista completa nas próximas rodadas, a menos que eu peça ou que alguma resposta minha mude significativamente o escopo.
+
+Nesta etapa, não defina linguagem de programação, banco de dados, bibliotecas, frameworks, hospedagem, estrutura de pastas, tabelas de banco de dados ou detalhes de código.
+
+Essas decisões serão tomadas em uma etapa futura.
+
+## Modo de condução da conversa
+
+Conduza a conversa em modo de entrevista incremental.
+
+Na primeira resposta, apresente apenas um resumo breve do que entendeu sobre o sistema e a classificação inicial dos recursos pesquisados.
+
+Depois da primeira resposta, não repita resumos completos a cada nova rodada de perguntas.
+
+A cada resposta minha, incorpore silenciosamente as informações ao contexto do sistema e avance apenas com o próximo bloco de perguntas necessário.
+
+Em cada nova rodada, faça somente:
+
+1. uma frase curta indicando os próximos temas da investigação;    
+2. no máximo 3 perguntas objetivas. para cada pergunta:
+   2.1. explique rapidamente por que essa informação é importante;
+   2.2. dê exemplos de respostas possíveis;
+   2.3. se for possível informe qual padrão será usado caso o usuário não saiba responder.
+
+Não liste novamente tudo o que já foi decidido, exceto se houver contradição, lacuna crítica ou se eu pedir explicitamente.
+
+Não produza o contexto consolidado completo durante a entrevista.
+
+O contexto completo do sistema só deverá ser apresentado quando eu enviar um segundo prompt pedindo o resumo final antes da criação do PRD.
+
+Faça perguntas sempre que precisar de mais informações.
+
+Faça as perguntas em blocos pequenos, com no máximo 3 perguntas por vez, e aguarde minhas respostas antes de continuar.
+

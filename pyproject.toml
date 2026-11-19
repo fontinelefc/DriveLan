@@ -1,0 +1,75 @@
+[project]
+name = "drivelan"
+version = "0.1.0.dev0"
+description = "DriveLan — compartilhamento de pastas na rede local (LAN), sem nuvem e sem SMB."
+readme = "README.md"
+license = "GPL-3.0-only"
+license-files = ["LICENSE"]
+requires-python = ">=3.12,<3.13"
+# Dependências da seção 3.2 do FSD. Nenhuma dependência nova sem conferir a
+# licença (compatível com GPLv3). As versões exatas ficam fixadas no uv.lock.
+dependencies = [
+    "PySide6>=6.8,<6.9",
+    "aiohttp>=3.10,<4",
+    "zeroconf>=0.136,<1",
+    "cryptography>=43",
+    "argon2-cffi>=23.1",
+    "psutil>=6.0",
+    "watchdog>=5.0",
+    "Send2Trash>=1.8",
+    "tomli-w>=1.0",
+    "pywin32>=308; sys_platform == 'win32'",
+]
+
+[project.scripts]
+drivelan-service = "drivelan.servico.__main__:main"
+drivelan = "drivelan.app.__main__:main"
+
+[dependency-groups]
+# Ferramentas de desenvolvimento (não distribuídas), FSD 3.2.
+dev = [
+    "pytest>=8.3",
+    "pytest-qt>=4.4",
+    "pytest-asyncio>=0.24",
+    "ruff>=0.8",
+    "mypy>=1.13",
+]
+
+[build-system]
+requires = ["uv_build>=0.9,<0.14"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "drivelan"
+module-root = "src"
+
+# ---------------------------------------------------------------- ruff
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "B", "UP", "N", "S", "SIM", "RUF"]
+ignore = [
+    "RUF001", "RUF002", "RUF003", # textos em português usam caracteres como "—" e "↔"
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101"] # assert é o padrão do pytest
+
+# ---------------------------------------------------------------- mypy
+[tool.mypy]
+python_version = "3.12"
+strict = true
+mypy_path = "src"
+packages = ["drivelan"]
+warn_unreachable = true
+
+# ---------------------------------------------------------------- pytest
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = ["--import-mode=importlib", "-ra"]
+asyncio_mode = "strict"
+asyncio_default_fixture_loop_scope = "function"
+qt_api = "pyside6"

@@ -1,0 +1,50 @@
+/*
+ * DriveLan — folha de estilo central (FSD 12.1).
+ *
+ * Fonte única de cores, fontes e arredondamentos da interface.
+ * Nenhum widget define cores no código.
+ *
+ * Os tokens abaixo são substituídos na carga: cada ocorrência de @nome-do-token
+ * nas regras é trocada pelo valor declarado no bloco TOKENS. O carregador é
+ * implementado na Fase 6 (app mínimo).
+ *
+ * Paleta oficial = texto descritivo do docs/DESIGN.md com as correções do FSD 12.1.
+ * Os tokens de cor do cabeçalho YAML do docs/DESIGN.md são DESCARTADOS.
+ *
+ * TOKENS
+ * @fundo-base:        #0E1024;   janela, barra de título, calhas
+ * @fundo-painel:      #181B3A;   painéis, cartões, tabelas, barra lateral, modais
+ * @fundo-elevado:     #22264C;   hover, linhas ativas, menus de contexto
+ * @borda:             #2A2E5C;   borda de 1px em contêineres, divisores e campos
+ * @primaria:          #3D6BFF;   seleção, links, foco de ações
+ * @secundaria:        #8B5CF6;   itens locais ("Pasta local")
+ * @terciaria:         #22D3EE;   itens da rede ("Pasta da rede") e anel de foco
+ * @texto:             #F1F3FF;   texto principal
+ * @texto-suave:       #A3A8D6;   metadados, tamanhos, IPs, ícones inativos
+ * @status-online:     #22C55E;   conectado
+ * @status-offline:    #64748B;   offline, desativada
+ * @status-atencao:    #F59E0B;   reconectando, em edição, em encerramento
+ * @status-erro:       #F43F5E;   erro, bloqueio, fechar (hover)
+ * @fundo-modal:       rgba(5, 7, 18, 0.6);   fundo escurecido atrás de modais
+ * @raio-cartao:       12px;      cartões e painéis
+ * @raio-controle:     8px;       botões e campos
+ * @fonte-interface:   "Inter";
+ * @fonte-mono:        "JetBrains Mono";   IPs, identificadores, PINs, janela do administrador
+ * FIM-TOKENS
+ *
+ * Gradiente dos botões primários: 135° de @primaria para @secundaria.
+ * Não usar backdrop-filter (FSD 12.1).
+ */
+
+/* ------------------------------------------------------------------ base */
+
+QWidget {
+    background-color: @fundo-base;
+    color: @texto;
+    font-family: @fonte-interface;
+    font-size: 14px;
+}
+
+/* As regras dos componentes (botões, PIN segmentado, cartões, chips, alertas,
+ * barra de título) são adicionadas nas fases que criam cada componente,
+ * seguindo docs/DESIGN.md com as correções do FSD 12.1. */

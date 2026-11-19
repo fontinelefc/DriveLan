@@ -1,0 +1,36 @@
+# Ambiente Python
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Caches de ferramentas
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Build e empacotamento
+build/
+dist/
+
+# Traduções compiladas (o .ts fica no repositório; o .qm vai só no pacote)
+*.qm
+
+# Dados de desenvolvimento do serviço (`drivelan-service --console --dados .dev/...`).
+# Banco, certificado, chave privada, configuração e logs NUNCA entram no Git.
+.dev/
+*.db
+*.db-wal
+*.db-shm
+*.db.antes-*
+*.pem
+*.key
+*.log
+
+# Editor e sistema
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
