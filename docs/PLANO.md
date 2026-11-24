@@ -48,13 +48,13 @@ entrada executam; teste automático confirma que `servico/` e `app/` não se imp
 
 **Checklist**
 
-- [ ] Regra única de nomes RN-68 (`comum/nomes.py`): caracteres proibidos, nomes reservados, ponto/espaço final, `.drivelan` na raiz, 255/1.024 caracteres, NFC, comparação sem maiúsculas
-- [ ] Nome adaptado na cópia para o computador (RN-68) e nomes gerados de duplicidade e conflito (FSD 21.8)
-- [ ] Caminhos do protocolo (`comum/caminhos.py`): validação de formato relativo com `/` (FSD 21.4, item 1) e conversão para o SO
-- [ ] Diretórios do sistema por plataforma (`comum/diretorios.py`, FSD 5.6), com pasta de dados alternativa para desenvolvimento
-- [ ] Códigos de erro, formato de erro e versão do protocolo (`comum/protocolo.py`, FSD 23.6)
-- [ ] Base de textos traduzíveis (`comum/i18n.py`)
-- [ ] Testes unitários extensos (Unicode, maiúsculas, nomes reservados com extensão, `..`, `\`, letras de unidade)
+- [x] Regra única de nomes RN-68 (`comum/nomes.py`): caracteres proibidos, nomes reservados, ponto/espaço final, `.drivelan` na raiz, 255/1.024 caracteres, NFC, comparação sem maiúsculas
+- [x] Nome adaptado na cópia para o computador (RN-68) e nomes gerados de duplicidade e conflito (FSD 21.8)
+- [x] Caminhos do protocolo (`comum/caminhos.py`): validação de formato relativo com `/` (FSD 21.4, item 1) e conversão para o SO
+- [x] Diretórios do sistema por plataforma (`comum/diretorios.py`, FSD 5.6), com pasta de dados alternativa para desenvolvimento
+- [x] Códigos de erro, formato de erro e versão do protocolo (`comum/protocolo.py`, FSD 23.6)
+- [x] Base de textos traduzíveis (`comum/i18n.py`)
+- [x] Testes unitários extensos (Unicode, maiúsculas, nomes reservados com extensão, `..`, `\`, letras de unidade)
 
 **Critérios de pronto:** cobertura de todos os casos da RN-68 e da seção 21.4 (item 1) em testes, rodando em Linux.
 

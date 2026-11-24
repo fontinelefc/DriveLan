@@ -53,6 +53,7 @@ src = ["src", "tests"]
 select = ["E", "W", "F", "I", "B", "UP", "N", "S", "SIM", "RUF"]
 ignore = [
     "RUF001", "RUF002", "RUF003", # textos em português usam caracteres como "—" e "↔"
+    "N818", # exceções têm nomes em português (ex.: NomeInvalido), sem o sufixo "Error"
 ]
 
 [tool.ruff.lint.per-file-ignores]

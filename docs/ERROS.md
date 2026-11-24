@@ -24,6 +24,19 @@ Modelo:
 
 ---
 
+## 2026-11-24 - Avisos do ruff com nomes em português e `noqa` de regra desligada
+
+- Sintoma: `ruff check` acusou `N818` nas exceções `NomeInvalido` e `CaminhoInvalido` (falta o
+  sufixo "Error") e `RUF100` ("unused noqa") em `# noqa: PLW0603` e `# noqa: DTZ001`.
+- Causa: o `N818` exige nomes de exceção em inglês. O `RUF100` marca como inútil todo `noqa` de
+  regra que não está habilitada no `pyproject.toml` (as famílias `PL` e `DTZ` não estão em
+  `select`).
+- Solução aplicada: `N818` acrescentado ao `ignore` do ruff, com comentário (o projeto usa nomes
+  em português). Os `noqa` de regras desligadas foram removidos.
+- Como evitar no futuro: só escrever `# noqa: <regra>` para regras do `select` do `pyproject.toml`
+  (E, W, F, I, B, UP, N, S, SIM, RUF). Exceções novas podem ter nomes em português, sem
+  "Error".
+
 ## 2026-11-17 - `uv sync` falhou por falta do README.md
 
 - Sintoma: `uv sync` parou com "failed to open file `README.md`" ao construir o pacote `drivelan`.
