@@ -1,7 +1,7 @@
 # Status do projeto DriveLan
 
-**Última atualização:** 24/11/2026 — Fase 2 (módulos comuns)
-**Fase atual:** Fase 2 concluída · próxima: **Fase 3 — Configuração e log de erros**
+**Última atualização:** 24/11/2026 — Fase 3 (configuração e log de erros)
+**Fase atual:** Fase 3 concluída · próxima: **Fase 4 — Banco e migrations**
 
 ## Estado atual
 
@@ -11,8 +11,10 @@ ferramentas de qualidade configuradas e passando, licença GPLv3, fontes embutid
 folha QSS com os tokens oficiais e documentação viva.
 
 Na Fase 2 foi implementado o código compartilhado em `src/drivelan/comum/` (RN-68, caminhos
-do protocolo, diretórios por plataforma, protocolo e i18n). Os demais módulos continuam como
-esqueletos; os dois pontos de entrada só imprimem um aviso.
+do protocolo, diretórios por plataforma, protocolo e i18n). Na Fase 3, a leitura e gravação do
+`drivelan.toml` (`servico/configuracao.py`) e o log de erros com contingência e retenção
+(`servico/log_erros.py`). Os demais módulos continuam como esqueletos; os dois pontos de entrada
+só imprimem um aviso.
 
 Validação da Fase 1 (17/11/2026):
 
@@ -31,8 +33,8 @@ argon2-cffi 25.1.0, psutil 7.2.2, watchdog 7.1.0, Send2Trash 2.2.0, tomli-w 1.2.
 |---|---|---|
 | 1 | Preparação do repositório | ✅ Concluída |
 | 2 | Módulos comuns | ✅ Concluída |
-| 3 | Configuração e log de erros | ⏳ Próxima |
-| 4 | Banco e migrations | Pendente |
+| 3 | Configuração e log de erros | ✅ Concluída |
+| 4 | Banco e migrations | ⏳ Próxima |
 | 5 | Serviço mínimo (com critério de saída da seção 15.5.1) | Pendente |
 | 6 | App mínimo | Pendente |
 | 7 | Contas e sessão | Pendente |
@@ -118,12 +120,71 @@ Decisões desta fase:
   log de 8 caracteres (Fase 3), o cliente do canal local (Fase 5) e o nome de pasta compartilhada
   de 1 a 64 caracteres (Fase 13).
 
+## Checklist da Fase 3 — Configuração e log de erros ✅ (24/11/2026)
+
+- [x] `servico/configuracao.py`: `Configuracao` com os padrões da seção 20.2, `carregar_configuracao`
+  (ausente → criado com o modelo comentado do FSD, em modo 0600 e pasta 0700; ilegível → padrões,
+  `AVISO` e nunca sobrescrito; valor inválido → padrão da chave e `AVISO`, sem repetir o valor),
+  validação de `log.ativo` (booleano), `rede.porta` (inteiro 1024–65535, recusando `true`) e
+  `rede.interface` (texto sem caracteres de controle)
+- [x] `gravar_valores` e `gravar_atomico`: temporário na mesma pasta (0600), `fsync`, `os.replace`,
+  `fsync` da pasta; preserva as demais chaves e seções; recusa arquivo ilegível
+  (`ConfiguracaoIlegivel`); em falha o original fica intacto e o temporário é removido
+- [x] `MonitorConfiguracao`: carga inicial e verificação do `mtime` no máximo a cada 60 s, aplicando
+  `log.ativo` ao log e registrando os avisos (o agendador que chama `verificar` é da Fase 5)
+- [x] `servico/log_erros.py`: `LogErros` com linhas no formato da seção 19.1.2 (hora local com fuso
+  e milissegundos), níveis `ERRO`/`CRITICO`/`AVISO`, pilha indentada, escape de quebras de linha e
+  `|`, arquivo `<logs>/AAAA-MM/AAAA-MM-DD.log` escolhido pela data do evento (rotação diária),
+  modos 0600/0700 e trava para uso por várias threads
+- [x] Liga/desliga (`definir_ativo`); desligado não grava nem guarda nada
+- [x] Contingência: buffer de 500 eventos, saída de erro padrão, nova tentativa após 60 s ou por
+  `tentar_novamente()`, despejo em ordem no arquivo de cada dia, sem duplicar em falha parcial;
+  `estado_contingencia()` para o aviso da aba Logs de erros (Fase 8)
+- [x] `erro_inesperado` gera e devolve o código de 8 hexadecimais maiúsculos (para
+  `mensagem_erro_interno`), gravado no contexto `codigo=`
+- [x] Segredos: valores de chaves de contexto com `pin`, `token`, `chave`, `senha`, `sessao`,
+  `segredo` ou `conteudo` no nome viram `[omitido]`; a pilha não inclui variáveis locais
+- [x] `aplicar_retencao(pasta, hoje)`: apaga só arquivos no padrão do log com data anterior a 3 meses
+  (fim de mês ajustado) e remove pastas de mês vazias
+- [x] Sem `.env`; nenhuma dependência nova
+
+Arquivos principais: `src/drivelan/servico/configuracao.py`, `src/drivelan/servico/log_erros.py`,
+`tests/servico/test_configuracao.py`, `tests/servico/test_log_erros.py`, `docs/PLANO.md`.
+
+Validação da Fase 3 (24/11/2026):
+
+- `uv run ruff check .` → sem problemas
+- `uv run ruff format --check .` → 65 arquivos formatados
+- `uv run mypy` (estrito) → sem problemas em 47 arquivos
+- `uv run pytest` → 420 testes passando (92 novos em `tests/servico/`)
+- Teste manual em `.dev/fase3` (apagado depois): arquivo criado com os padrões, erro inesperado com
+  código e `pin=[omitido]`, `AVISO` para porta inválida e para arquivo ilegível, que foi preservado
+
+Decisões desta fase:
+
+- O arquivo criado do zero usa o modelo comentado da seção 20.2; gravações posteriores pelo
+  `tomli-w` preservam as chaves, mas não os comentários (limitação da biblioteca).
+- A verificação de que a placa de `rede.interface` existe fica para a Fase 10 (rede local); nesta
+  fase o valor só é validado como texto.
+- Textos dos avisos de configuração e da mensagem de contingência na saída de erro não estão no
+  FSD; são mensagens técnicas do log (não aparecem ao usuário).
+- Ficaram para as próximas fases: chamada periódica do monitor, da contingência e da retenção pelo
+  agendador e a ordem de inicialização (Fase 5); a contingência do app em `log-contingencia/` e a
+  rota `POST /local/v1/app/erros` (Fases 5 e 6, com o canal local); a aba Logs de erros (Fase 8).
+
 ## Versionamento
 
 O versionamento (commit e push) é feito pelo próprio usuário. Commit da Fase 1 registrado:
 `c94c021 initial commit for DriveLAN project`. Commit da Fase 2:
 `ea4b280 Coding started - Phase 2: common modules` (14 arquivos), enviado ao GitHub
 (`main` sincronizado com `origin/main`, conferido em 24/11/2026).
+
+Fase 3 (24/11/2026, branch `develop`): entrega pronta para versionar, conferida com `git status`,
+sem segredos, banco ou logs. Arquivos: `src/drivelan/servico/configuracao.py`,
+`src/drivelan/servico/log_erros.py`, `tests/servico/test_configuracao.py`,
+`tests/servico/test_log_erros.py`, `docs/PLANO.md`, `docs/STATUS.md` e `docs/ERROS.md`.
+Mensagem sugerida: `Fase 3: configuração (drivelan.toml) e log de erros com contingência e
+retenção`.
 
 ## Observações e pendências conhecidas
 
@@ -137,7 +198,7 @@ O versionamento (commit e push) é feito pelo próprio usuário. Commit da Fase 
 
 ## Próximo passo recomendado
 
-Depois de versionar a Fase 2, iniciar a **Fase 3 — Configuração e log de erros** em um chat novo:
-`drivelan.toml` com `tomllib`/`tomli-w` (padrões, validação, gravação atômica), log diário em
-`<logs>/AAAA-MM/AAAA-MM-DD.log`, contingência, código curto de 8 caracteres e retenção de 3 meses.
-Ela usa `comum/diretorios.py` (campos `configuracao` e `logs`).
+Depois de versionar a Fase 3, iniciar a **Fase 4 — Banco e migrations** em um chat novo:
+`dados/banco.py` (conexão de escrita única em thread dedicada, conexão somente leitura, PRAGMAs da
+seção 11.1), executor de migrations com `schema_migracoes`, checksum e cópia de segurança, e a
+`0001_inicial.sql` completa da seção 11.2. Erros de migration usam o `LogErros` desta fase.

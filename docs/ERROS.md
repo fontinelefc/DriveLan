@@ -24,6 +24,19 @@ Modelo:
 
 ---
 
+## 2026-11-24 - Pasta raiz dos logs criada com 0755 em vez de 0700
+
+- Sintoma: o teste de permissões do log falhou: a pasta do mês ficou com 0700, mas a pasta raiz dos
+  logs ficou com 0755.
+- Causa: `criar_diretorio_privado` usa `mkdir(parents=True)`, que cria as pastas intermediárias com
+  o modo padrão (umask); só a última pasta recebe 0700 pelo `chmod`.
+- Solução aplicada: `LogErros` cria a raiz e a pasta do mês com duas chamadas separadas a
+  `criar_diretorio_privado`.
+- Como evitar no futuro: quando várias pastas da cadeia precisarem ser privadas (dados, certificado,
+  logs), chamar `criar_diretorio_privado` para cada uma, da mais externa para a mais interna. Nota:
+  a função também reaplica 0700 numa pasta que já existe, então tirar a permissão de escrita da
+  pasta não serve para simular falha de gravação nos testes (use falha simulada com `monkeypatch`).
+
 ## 2026-11-24 - Avisos do ruff com nomes em português e `noqa` de regra desligada
 
 - Sintoma: `ruff check` acusou `N818` nas exceções `NomeInvalido` e `CaminhoInvalido` (falta o

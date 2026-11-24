@@ -70,15 +70,15 @@ entrada executam; teste automático confirma que `servico/` e `app/` não se imp
 
 **Checklist**
 
-- [ ] Leitura com `tomllib` e valores padrão (`log.ativo`, `rede.interface`, `rede.porta`), validação e fallback (FSD 20.2)
-- [ ] Gravação atômica com `tomli-w`, preservando as demais chaves; arquivo ausente é criado; ilegível não é sobrescrito
-- [ ] Log em `<logs>/AAAA-MM/AAAA-MM-DD.log`, formato e níveis da seção 19.1.2
-- [ ] Liga/desliga por `log.ativo`, com verificação da data de modificação a cada 60 s
-- [ ] Contingência: buffer de 500 eventos, saída de erro padrão, nova tentativa a cada 60 s (FSD 19.1.5)
-- [ ] Código curto de 8 caracteres para erros inesperados (FSD 19.1.4)
-- [ ] Retenção de 3 meses (função usada depois pelo agendador)
-- [ ] Garantia de que PINs, tokens e chave nunca são registrados
-- [ ] Sem `.env`
+- [x] Leitura com `tomllib` e valores padrão (`log.ativo`, `rede.interface`, `rede.porta`), validação e fallback (FSD 20.2)
+- [x] Gravação atômica com `tomli-w`, preservando as demais chaves; arquivo ausente é criado; ilegível não é sobrescrito
+- [x] Log em `<logs>/AAAA-MM/AAAA-MM-DD.log`, formato e níveis da seção 19.1.2
+- [x] Liga/desliga por `log.ativo`, com verificação da data de modificação a cada 60 s
+- [x] Contingência: buffer de 500 eventos, saída de erro padrão, nova tentativa a cada 60 s (FSD 19.1.5)
+- [x] Código curto de 8 caracteres para erros inesperados (FSD 19.1.4)
+- [x] Retenção de 3 meses (função usada depois pelo agendador)
+- [x] Garantia de que PINs, tokens e chave nunca são registrados
+- [x] Sem `.env`
 
 **Critérios de pronto:** testes cobrindo padrões, valores inválidos, gravação atômica, rotação diária, contingência e retenção.
 
