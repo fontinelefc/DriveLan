@@ -121,8 +121,9 @@ Decisões desta fase:
 ## Versionamento
 
 O versionamento (commit e push) é feito pelo próprio usuário. Commit da Fase 1 registrado:
-`c94c021 initial commit for DriveLAN project`. Commit da Fase 2: **aguardando o usuário**
-(mensagem sugerida: `Fase 2: módulos comuns (RN-68, caminhos, diretórios, protocolo, i18n)`).
+`c94c021 initial commit for DriveLAN project`. Commit da Fase 2:
+`ea4b280 Coding started - Phase 2: common modules` (14 arquivos), enviado ao GitHub
+(`main` sincronizado com `origin/main`, conferido em 24/11/2026).
 
 ## Observações e pendências conhecidas
 
