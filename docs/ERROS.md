@@ -24,6 +24,19 @@ Modelo:
 
 ---
 
+## 2026-11-27 - `sqlite3.complete_statement` não detecta comando sintaticamente incompleto
+
+- Sintoma: o teste que esperava `MigracaoInvalida` para um script terminado em
+  `CREATE TABLE u (b` não recebeu a exceção.
+- Causa: `complete_statement` só verifica se o texto termina em `;` fora de textos, comentários e
+  corpos de gatilho (`BEGIN ... END`). Um parêntese aberto com `;` no fim é considerado "completo";
+  o erro de sintaxe só aparece ao executar.
+- Solução aplicada: a divisão de comandos recusa apenas gatilho ou texto sem fechamento; erros de
+  sintaxe são tratados na execução, dentro da transação da migration (`FalhaMigracao`, nada fica
+  aplicado). O teste passou a cobrir os dois casos separadamente.
+- Como evitar no futuro: não usar `complete_statement` como validador de sintaxe; validar uma
+  migration nova rodando `uv run pytest tests/servico/test_migracoes.py tests/servico/test_esquema_0001.py`.
+
 ## 2026-11-24 - Pasta raiz dos logs criada com 0755 em vez de 0700
 
 - Sintoma: o teste de permissões do log falhou: a pasta do mês ficou com 0700, mas a pasta raiz dos

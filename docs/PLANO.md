@@ -94,11 +94,11 @@ entrada executam; teste automático confirma que `servico/` e `app/` não se imp
 
 **Checklist**
 
-- [ ] `dados/banco.py`: conexão de escrita única em thread dedicada, conexão somente leitura, PRAGMAs da seção 11.1, transações
-- [ ] `dados/migracoes.py`: `schema_migracoes`, ordem numérica, checksum SHA-256, cópia `drivelan.db.antes-<versao>` (3 mais recentes), uma transação por migration
-- [ ] `0001_inicial.sql` com **todas** as tabelas, campos, `CHECK`, chaves, índices (inclusive parciais), FTS5 `auditoria_busca` com `trigram` e gatilhos da seção 11.2; linha única de `admin_controle`
-- [ ] Alternativa `LIKE` quando o SQLite não suportar `trigram`
-- [ ] Testes: execução duplicada, migration alterada (para sem corromper), cópia de segurança, constraints e índices únicos parciais
+- [x] `dados/banco.py`: conexão de escrita única em thread dedicada, conexão somente leitura, PRAGMAs da seção 11.1, transações
+- [x] `dados/migracoes.py`: `schema_migracoes`, ordem numérica, checksum SHA-256, cópia `drivelan.db.antes-<versao>` (3 mais recentes), uma transação por migration
+- [x] `0001_inicial.sql` com **todas** as tabelas, campos, `CHECK`, chaves, índices (inclusive parciais), FTS5 `auditoria_busca` com `trigram` e gatilhos da seção 11.2; linha única de `admin_controle`
+- [x] Alternativa `LIKE` quando o SQLite não suportar `trigram`
+- [x] Testes: execução duplicada, migration alterada (para sem corromper), cópia de segurança, constraints e índices únicos parciais
 
 **Critérios de pronto:** banco criado do zero em pasta temporária com todas as estruturas; testes de integridade passando.
 
