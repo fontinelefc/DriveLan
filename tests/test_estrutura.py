@@ -75,9 +75,14 @@ def test_pontos_de_entrada_declarados() -> None:
     assert scripts["drivelan"] == "drivelan.app.__main__:main"
 
 
-@pytest.mark.parametrize("modulo", ["drivelan.servico.__main__", "drivelan.app.__main__"])
-def test_pontos_de_entrada_executam(modulo: str) -> None:
-    assert importlib.import_module(modulo).main() == 0
+def test_ponto_de_entrada_do_servico_executa(tmp_path: Path) -> None:
+    # Sem argumentos o serviço roda até ser parado; `--migrar` executa e termina (Fase 5).
+    principal = importlib.import_module("drivelan.servico.__main__")
+    assert principal.main(["--migrar", "--dados", str(tmp_path)]) == 0
+
+
+def test_ponto_de_entrada_do_app_executa() -> None:
+    assert importlib.import_module("drivelan.app.__main__").main() == 0
 
 
 @pytest.mark.parametrize(("origem", "proibido"), [("servico", "app"), ("app", "servico")])

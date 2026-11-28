@@ -24,6 +24,37 @@ Modelo:
 
 ---
 
+## 2026-11-27 - Middleware do aiohttp falhou com "unexpected keyword argument 'handler'"
+
+- Sintoma: todo pedido ao canal local respondia `500 Server got itself in trouble` (página do
+  próprio aiohttp, fora do formato 23.6) e o terminal mostrava `TypeError: identificar() got an
+  unexpected keyword argument 'handler'`.
+- Causa: o aiohttp 3.14 chama os middlewares com `middleware(request, handler=...)`, por nome. O
+  parâmetro tinha sido chamado `manipulador`.
+- Solução aplicada: os middlewares em `servico/api/local/aplicacao.py` usam exatamente
+  `(pedido, handler)`; o primeiro parâmetro pode ter qualquer nome.
+- Como evitar no futuro: em middlewares `@web.middleware`, manter o nome `handler` no segundo
+  parâmetro (exceção à regra de nomes em português). Os testes de `tests/servico/test_api_local.py`
+  passam pelos middlewares e pegam o problema.
+
+## 2026-11-27 - `assert` de plataforma, ruff (S101/E402) e mypy sem pywin32 no Linux
+
+- Sintoma: `ruff` acusou `S101` e `E402` nos módulos só do Windows; `mypy` acusou
+  `Module "...windows_pipe" has no attribute "ServidorPipe"` e falta de tipos do `psutil`.
+- Causa: os módulos `plataforma/windows*.py` começam com `assert sys.platform == "win32"` para o
+  mypy não analisá-los no Linux (onde o pywin32 não existe); por isso os imports vêm depois do
+  `assert`. Um import desses módulos fora de um `if sys.platform == "win32":` não é entendido como
+  inalcançável. O `psutil` não publica tipos.
+- Solução aplicada: `# noqa: S101` no `assert` de plataforma, `E402` liberado só para
+  `src/drivelan/servico/plataforma/windows*.py` no `pyproject.toml`, imports de módulos do Windows
+  sempre dentro de `if sys.platform == "win32":` e override do mypy com `ignore_missing_imports`
+  para os módulos do pywin32 e para o `psutil`, sem adicionar `types-pywin32`/`types-psutil`
+  (dependências novas). Fora desses casos, o código do pacote não usa `assert` (S101): usa
+  `RuntimeError` explícito.
+- Como evitar no futuro: código novo só do Windows vai para `plataforma/windows*.py` e é importado
+  dentro de `if sys.platform == "win32":`; valores vindos do `psutil` são convertidos (`float(...)`,
+  `int(...)`) antes de devolver.
+
 ## 2026-11-27 - `sqlite3.complete_statement` não detecta comando sintaticamente incompleto
 
 - Sintoma: o teste que esperava `MigracaoInvalida` para um script terminado em

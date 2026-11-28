@@ -1,7 +1,8 @@
 # Status do projeto DriveLan
 
-**Última atualização:** 27/11/2026 — Fase 4 (banco e migrations)
-**Fase atual:** Fase 4 concluída · próxima: **Fase 5 — Serviço mínimo**
+**Última atualização:** 27/11/2026 — Fase 5 (serviço mínimo)
+**Fase atual:** Fase 5 concluída no Linux, **aguardando o critério de saída da seção 15.5.1 na VM
+Windows 11** · a Fase 6 só começa depois dessa validação
 
 ## Estado atual
 
@@ -14,8 +15,10 @@ Na Fase 2 foi implementado o código compartilhado em `src/drivelan/comum/` (RN-
 do protocolo, diretórios por plataforma, protocolo e i18n). Na Fase 3, a leitura e gravação do
 `drivelan.toml` (`servico/configuracao.py`) e o log de erros com contingência e retenção
 (`servico/log_erros.py`). Na Fase 4, o banco SQLite (`servico/dados/banco.py`), o executor de
-migrations (`servico/dados/migracoes.py`) e a `0001_inicial.sql` completa. Os demais módulos continuam como esqueletos; os dois pontos de entrada
-só imprimem um aviso.
+migrations (`servico/dados/migracoes.py`) e a `0001_inicial.sql` completa. Na Fase 5, o
+`drivelan-service` passou a subir de verdade (`--console`, `--dados`, `--migrar`), na ordem da
+seção 6.1, com agendador e canal local seguro (socket Unix com `SO_PEERCRED`; named pipe próprio no
+Windows, ainda não executado numa VM). O app (`drivelan`) continua como esqueleto (Fase 6).
 
 Validação da Fase 1 (17/11/2026):
 
@@ -36,8 +39,8 @@ argon2-cffi 25.1.0, psutil 7.2.2, watchdog 7.1.0, Send2Trash 2.2.0, tomli-w 1.2.
 | 2 | Módulos comuns | ✅ Concluída |
 | 3 | Configuração e log de erros | ✅ Concluída |
 | 4 | Banco e migrations | ✅ Concluída |
-| 5 | Serviço mínimo (com critério de saída da seção 15.5.1) | ⏳ Próxima |
-| 6 | App mínimo | Pendente |
+| 5 | Serviço mínimo (com critério de saída da seção 15.5.1) | 🟡 Concluída no Linux; critério 15.5.1 pendente na VM |
+| 6 | App mínimo | Bloqueada até o critério 15.5.1 |
 | 7 | Contas e sessão | Pendente |
 | 8 | Administrador | Pendente |
 | 9 | Auditoria | Pendente |
@@ -226,6 +229,123 @@ Decisões desta fase (aprovadas no plano):
   e 11). A consulta de auditoria com FTS ou `LIKE` é da Fase 9; o comando `--migrar` e a nova
   tentativa a cada 30 s, da Fase 5.
 
+## Checklist da Fase 5 — Serviço mínimo 🟡 (27/11/2026)
+
+- [x] `servico/__main__.py`: `--console` (primeiro plano, log também no terminal), `--dados <pasta>`
+  e `--migrar` (aplica as migrations e sai; sem `--dados` exige root/administrador, FSD 24.8)
+- [x] `servico/inicializacao.py`: as 10 etapas da seção 6.1 em ordem (1 log, 2 configuração,
+  3 banco, 8 canal local e 10 agendador implementadas; 4, 5, 6, 7 e 9 aparecem como marcadores das
+  Fases 11, 20, 13, 11 e 12); etapas impeditivas (3 e 8) tentam de novo a cada 30 s sem encerrar;
+  a parada interrompe a espera; fechamento na ordem agendador → canal → banco
+- [x] Laço `asyncio`, pool de 4 threads de disco (executor padrão do laço), `SIGTERM`/`SIGINT` no
+  Linux e Ctrl+C no Windows
+- [x] `tarefas/agendador.py`: tarefas "a cada N s" e "diariamente às HH:MM" (com execução na
+  inicialização); funções síncronas no pool de disco; falha registrada no log sem derrubar nada
+- [x] `tarefas/basicas.py`: verificação do `drivelan.toml` (60 s), nova tentativa da contingência do
+  log (60 s) e retenção dos logs (03:00 e na inicialização)
+- [x] Canal local no Linux (`plataforma/linux.py`): `SO_PEERCRED` (UID e PID) e horário de criação
+  do processo; socket antigo removido só se for socket e ninguém responder; outra instância →
+  `CanalEmUso`; socket 0666 em produção (`/run/drivelan` 0755) e 0600 em desenvolvimento
+- [x] Canal local no Windows (`plataforma/windows_pipe.py` e `windows.py`): `CreateNamedPipe` com
+  `PIPE_ACCESS_DUPLEX | FILE_FLAG_OVERLAPPED` (e `FILE_FLAG_FIRST_PIPE_INSTANCE` na primeira),
+  `PIPE_REJECT_REMOTE_CLIENTS`, SDDL da seção 15.5.1, instâncias ilimitadas com uma sempre
+  aguardando, PID por `GetNamedPipeClientProcessId` e SID pelo token **antes** de qualquer pedido,
+  transporte do proactor atendido pelo `aiohttp.web.Server` — **escrito e compilado, mas ainda não
+  executado** (não há Windows neste ambiente)
+- [x] `api/local/`: middlewares de identidade (uma vez por conexão; sem identidade → 403
+  `acesso_negado` e log) e de erros 23.6 (404 `nao_encontrado`; 405, corpo malformado ou > 64 KB →
+  400 `requisicao_invalida`; exceção → 500 `erro_interno` com `codigo_log`, sem detalhes técnicos);
+  `GET /local/v1/estado`; `GET /local/v1/eventos` (WebSocket mínimo, ping de 30 s, só identidade do
+  SO); JSON em UTF-8
+- [x] Diagnóstico só em `--console`: uma linha por conexão (`usuario_so` e `pid`) na saída do
+  terminal, nunca no arquivo de log (decisão do usuário)
+- [x] `comum/canal_local.py`: `UnixConnector`/`NamedPipeConnector`, `ClienteCanalLocal`
+  (`obter_estado`, `abrir_eventos`, `pedir_json`), `ErroCanalLocal` (formato 23.6) e
+  `ServicoIndisponivel`
+- [x] `LogErros` ganhou o parâmetro `espelho` (log também no terminal em `--console`)
+- [x] Duas instâncias com `--dados` e `rede.porta` diferentes rodando juntas (teste de integração)
+- [ ] **Critério de saída da seção 15.5.1 numa VM Windows 11 com o serviço como LocalSystem**
+  (roteiro abaixo) — pendência do usuário; bloqueia a Fase 6
+
+Arquivos principais: `src/drivelan/servico/{__main__,inicializacao,log_erros}.py`,
+`src/drivelan/servico/api/local/{aplicacao,estado,eventos,servidor}.py`,
+`src/drivelan/servico/tarefas/{agendador,basicas}.py`,
+`src/drivelan/servico/plataforma/{__init__,linux,windows,windows_pipe}.py`,
+`src/drivelan/comum/{canal_local,protocolo}.py`, `pyproject.toml`, `uv.lock`, testes em
+`tests/servico/`, `tests/comum/`, `tests/integracao/` e `tests/test_estrutura.py`, `docs/PLANO.md`,
+`docs/ERROS.md`.
+
+Validação da Fase 5 no Fedora (27/11/2026):
+
+- `uv run ruff check .` → sem problemas
+- `uv run ruff format --check .` → 83 arquivos formatados
+- `uv run mypy` (estrito) → sem problemas em 53 arquivos (os módulos do Windows não são analisados
+  no Linux)
+- `uv run pytest` → 562 testes passando (70 novos) e 5 pulados (os do Windows); repetido 3 vezes
+  sem falhas
+- Teste manual em `.dev/` (apagado depois): `--console` sobe e mostra o socket; `curl
+  --unix-socket` em `/local/v1/estado` devolve `pronto: true`, aparece a linha de diagnóstico com o
+  UID e o PID, rota inexistente → 404 e `POST` no estado → 400, ambos no formato 23.6; duas
+  instâncias em pastas diferentes sobem juntas; uma terceira na mesma pasta registra a falha
+  impeditiva da etapa 8 e espera 30 s; `SIGTERM` encerra e remove o socket; `--migrar --dados`
+  sai com 0 e `--migrar` sem root sai com 2
+
+Decisões desta fase (aprovadas no plano):
+
+- Sem `--console`, o processo roda em primeiro plano (como o systemd espera). O registro como
+  serviço do Windows e a unidade systemd ficam para a Fase 27. Na VM, o LocalSystem é obtido por
+  uma tarefa agendada como SYSTEM.
+- `--migrar` com `--dados` (desenvolvimento) não exige administrador.
+- `usuario_so` usa o formato de `so_dono`/`so_usuario`: o UID em texto (Linux) ou o SID (Windows).
+- Mensagem dos códigos sem texto próprio no FSD (`nao_encontrado`, `requisicao_invalida`): a
+  genérica da seção 19.1.4 (`mensagem_generica()` em `comum/protocolo.py`).
+- `aiohttp` passou a exigir `>=3.14` (uso de `web.RequestKey`; versão fixada continua 3.14.5).
+  Nenhuma dependência nova.
+- Ficaram para as próximas fases: `POST /local/v1/app/erros` e a contingência do app (Fase 6);
+  sessões de conta e o fim da sessão pelo WebSocket fechado > 60 s (Fase 7).
+
+### Roteiro do critério 15.5.1 na VM Windows 11 (a fazer pelo usuário)
+
+Pré-requisitos: VM Windows 11 em rede ponte; Git e uv instalados; uma conta de **usuário comum**
+(sem administrador) e uma de administrador; o serviço "Servidor" (LanmanServer) ativo, para o teste
+pelo caminho de rede.
+
+1. Como usuário comum, clonar o repositório (ex.: `C:\DriveLan`), rodar `uv sync` e depois
+   `uv run pytest tests/integracao/test_canal_local_windows.py -v`. Esperado: 5 testes passando
+   (HTTP e WebSocket pelo pipe, SID e PID identificados, caminho de rede recusado, segunda
+   instância do pipe recusada).
+2. Num terminal de **administrador**, subir o serviço como LocalSystem com uma tarefa agendada:
+
+   ```bat
+   mkdir C:\DriveLanDev
+   schtasks /create /tn DriveLanFase5 /sc once /st 00:00 /ru SYSTEM /f /tr "cmd /c C:\DriveLan\.venv\Scripts\drivelan-service.exe --console --dados C:\DriveLanDev > C:\DriveLanDev-console.txt 2>&1"
+   schtasks /run /tn DriveLanFase5
+   ```
+
+   Conferir em `C:\DriveLanDev-console.txt` as linhas `canal local em \\.\pipe\drivelan-servico-dev-...`
+   e `pronto.`.
+3. Como **usuário comum**, em `C:\DriveLan`:
+
+   ```bat
+   set DRIVELAN_TESTE_PIPE_DADOS=C:\DriveLanDev
+   uv run pytest tests/integracao/test_canal_local_windows.py -v -s
+   ```
+
+   Esperado: HTTP e WebSocket passam; o teste mostra "SID deste processo: S-1-5-21-... | PID: N".
+   Em `C:\DriveLanDev-console.txt` deve aparecer `conexão local aceita | usuario_so=<mesmo SID>
+   pid=<PID>` (o PID é o do processo `python` do pytest, mostrado na linha do teste); o teste do
+   caminho de rede precisa passar (acesso recusado).
+4. Outro computador: de uma segunda máquina da rede, tentar abrir
+   `\\<nome-da-VM>\pipe\drivelan-servico-dev-<hash>` (ex.: no PowerShell de outro Windows,
+   `[System.IO.File]::Open("\\<VM>\pipe\<nome>", "Open")`, ou no Fedora `smbclient //<VM>/IPC$ -U
+   <usuario>` seguido de `open <nome>`). Esperado: recusado.
+5. Parar e remover: `schtasks /end /tn DriveLanFase5` e `schtasks /delete /tn DriveLanFase5 /f`;
+   apagar `C:\DriveLanDev` e `C:\DriveLanDev-console.txt`.
+
+Se algum passo falhar, guarde a saída e o arquivo do console e abra um chat para corrigir antes da
+Fase 6. Pelo FSD, o pipe não pode ser trocado por TCP local sem revisar o FSD. Se o problema for o
+transporte do proactor, a alternativa prevista é a ponte com uma thread por conexão.
+
 ## Versionamento
 
 O versionamento (commit e push) é feito pelo próprio usuário. Commit da Fase 1 registrado:
@@ -246,7 +366,13 @@ sem banco, cópias ou logs. Arquivos: `src/drivelan/servico/dados/banco.py`,
 remoção de `src/drivelan/servico/dados/migracoes/.gitkeep`, `tests/servico/test_banco.py`,
 `tests/servico/test_migracoes.py`, `tests/servico/test_esquema_0001.py`, `docs/PLANO.md`,
 `docs/STATUS.md` e `docs/ERROS.md`. Mensagem sugerida:
-`Fase 4: banco SQLite e migrations (0001_inicial completa)`.
+`Fase 4: banco SQLite e migrations (0001_inicial completa)`. Registrada pelo usuário como
+`272ebbd SQLite database and migrations (0001_initial completed)`.
+
+Fase 5 (27/11/2026, branch `develop`): entrega pronta para versionar, conferida com `git status`,
+sem banco, logs, sockets ou `.dev/`. Arquivos alterados e novos listados no checklist da Fase 5.
+Mensagem sugerida: `Fase 5: serviço mínimo e canal local seguro (Linux validado; pipe do Windows
+aguardando VM)`.
 
 ## Observações e pendências conhecidas
 
@@ -255,14 +381,15 @@ remoção de `src/drivelan/servico/dados/migracoes/.gitkeep`, `tests/servico/tes
 - A adaptação da logo para os formatos de cada uso (`.ico`, ícone `.desktop`, bandeja) fica para a
   Fase 6 (ícone da janela) e a Fase 27 (instalador), conforme `docs/INSUMOS.md`.
 - O carregador da QSS (substituição dos tokens) é implementado na Fase 6.
-- O Windows ainda não foi preparado como ambiente de teste (VM Windows 11 em modo ponte); ele é
-  obrigatório no fim da Fase 5.
+- O Windows ainda não foi preparado como ambiente de teste (VM Windows 11 em modo ponte). Ele é
+  obrigatório para fechar a Fase 5 (roteiro do critério 15.5.1 acima).
 
 ## Próximo passo recomendado
 
-Depois de versionar a Fase 4, iniciar a **Fase 5 — Serviço mínimo** em um chat novo: opções
-`--console`, `--dados` e `--migrar`, ordem de inicialização da seção 6.1 (log → configuração →
-`BancoDados.abrir` com migrations → ...) com nova tentativa a cada 30 s, laço `asyncio`, esqueleto
-do agendador, canal local (socket Unix com `SO_PEERCRED`; named pipe próprio no Windows) e
-`GET /local/v1/estado`. Atenção: o fim da Fase 5 exige o critério de saída da seção 15.5.1 numa
-VM Windows 11 com o serviço como LocalSystem.
+1. Versionar a Fase 5.
+2. Preparar a VM Windows 11 e executar o **roteiro do critério 15.5.1** (checklist da Fase 5).
+3. Com o critério cumprido, marcar a Fase 5 como ✅ e o item correspondente no `docs/PLANO.md`. Depois
+   disso, iniciar a **Fase 6 — App mínimo** num chat novo: `drivelan --servico-local`, instância única,
+   fontes, QSS com tokens, barra de título própria, `PonteAssincrona` (usando
+   `comum/canal_local.ClienteCanalLocal`) e tela "serviço indisponível". Se o critério falhar, corrigir
+   o pipe antes de tudo (registrar em `docs/ERROS.md`).

@@ -114,14 +114,15 @@ entrada executam; teste automático confirma que `servico/` e `app/` não se imp
 
 **Checklist**
 
-- [ ] Opções de linha de comando: `--console`, `--dados`, `--migrar` (demais comandos protegidos ficam nas fases que os usam)
-- [ ] Ordem de inicialização da seção 6.1, com nova tentativa a cada 30 s em falha impeditiva, sem encerrar
-- [ ] Laço `asyncio` principal, pool de threads para disco, esqueleto do agendador
-- [ ] Canal local no Linux: socket Unix `/run/drivelan/local.sock` (ou caminho de desenvolvimento), `SO_PEERCRED` (UID e PID)
-- [ ] Canal local no Windows: servidor próprio do named pipe (`plataforma/windows_pipe.py`, FSD 15.5.1) com SDDL, `PIPE_REJECT_REMOTE_CLIENTS`, SID e PID do cliente, `aiohttp.web.Server`
-- [ ] Rota `GET /local/v1/estado` e formato de erro da seção 23.6
-- [ ] Cliente do canal local em `comum/canal_local.py` (`UnixConnector` / `NamedPipeConnector`)
-- [ ] Duas instâncias com pastas de dados e portas diferentes na mesma máquina
+- [x] Opções de linha de comando: `--console`, `--dados`, `--migrar` (demais comandos protegidos ficam nas fases que os usam)
+- [x] Ordem de inicialização da seção 6.1, com nova tentativa a cada 30 s em falha impeditiva, sem encerrar
+- [x] Laço `asyncio` principal, pool de threads para disco, esqueleto do agendador
+- [x] Canal local no Linux: socket Unix `/run/drivelan/local.sock` (ou caminho de desenvolvimento), `SO_PEERCRED` (UID e PID)
+- [x] Canal local no Windows: servidor próprio do named pipe (`plataforma/windows_pipe.py`, FSD 15.5.1) com SDDL, `PIPE_REJECT_REMOTE_CLIENTS`, SID e PID do cliente, `aiohttp.web.Server` — código e testes prontos; **execução na VM pendente**
+- [x] Rota `GET /local/v1/estado` e formato de erro da seção 23.6 (mais o WebSocket `GET /local/v1/eventos` mínimo, exigido pelo critério 15.5.1)
+- [x] Cliente do canal local em `comum/canal_local.py` (`UnixConnector` / `NamedPipeConnector`)
+- [x] Duas instâncias com pastas de dados e portas diferentes na mesma máquina
+- [ ] **Critério de saída da seção 15.5.1 na VM Windows 11 (LocalSystem)** — roteiro em `docs/STATUS.md`
 
 **Critérios de pronto:** serviço sobe em modo console no Fedora; teste automatizado do canal local; **critério de saída obrigatório da seção 15.5.1** cumprido numa VM Windows 11 com o serviço como LocalSystem. Se não for atingido, a implementação para e o FSD é revisado (não substituir por TCP local).
 

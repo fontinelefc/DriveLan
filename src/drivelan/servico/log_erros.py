@@ -181,8 +181,11 @@ class LogErros:
         relogio: Callable[[], datetime] = _hora_local,
         relogio_monotonico: Callable[[], float] = time.monotonic,
         saida_erro: TextIO | None = None,
+        espelho: TextIO | None = None,
     ) -> None:
+        """`espelho` recebe uma cópia de cada evento (`--console`, "log no terminal", FSD 4.1)."""
         self._pasta = pasta_logs
+        self._espelho = espelho
         self._ativo = ativo
         self._relogio = relogio
         self._monotonico = relogio_monotonico
@@ -230,6 +233,7 @@ class LogErros:
                 momento.date(),
                 formatar_evento(momento, nivel, origem, mensagem, contexto, excecao),
             )
+            self._espelhar(evento.texto)
             if self._falha_desde is None:
                 try:
                     self._gravar([evento])
@@ -327,6 +331,15 @@ class LogErros:
                 self._buffer.popleft()
         self._falha_desde = None
         return True
+
+    def _espelhar(self, texto: str) -> None:
+        if self._espelho is None:
+            return
+        try:
+            self._espelho.write(texto + "\n")
+            self._espelho.flush()
+        except (OSError, ValueError):
+            pass  # terminal fechado: o evento segue para o arquivo normalmente
 
     def _escrever_saida_erro(self, texto: str) -> None:
         saida = self._saida_erro if self._saida_erro is not None else sys.stderr

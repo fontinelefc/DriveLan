@@ -117,6 +117,11 @@ _MENSAGENS_PADRAO: dict[CodigoErro, str] = {
     ),
 }
 
+_MENSAGEM_GENERICA = QT_TRANSLATE_NOOP(
+    "Protocolo",
+    "Não foi possível concluir a ação. Tente novamente. Se o problema continuar, procure o TI.",
+)
+
 _MENSAGEM_ERRO_INTERNO = QT_TRANSLATE_NOOP(
     "Protocolo",
     "Não foi possível concluir a ação. Tente novamente. Se o problema continuar, procure o TI. "
@@ -128,6 +133,16 @@ def mensagem_padrao(codigo: CodigoErro) -> str | None:
     """Texto do FSD para o código, já traduzido, ou `None` se o código não tem texto fixo."""
     texto = _MENSAGENS_PADRAO.get(codigo)
     return traduzir(CONTEXTO, texto) if texto is not None else None
+
+
+def mensagem_generica() -> str:
+    """Mensagem genérica da seção 19.1.4, para códigos sem texto próprio no FSD."""
+    return traduzir(CONTEXTO, _MENSAGEM_GENERICA)
+
+
+def mensagem_ou_generica(codigo: CodigoErro) -> str:
+    """Texto do FSD para o código ou, se ele não tiver texto fixo, a mensagem genérica."""
+    return mensagem_padrao(codigo) or mensagem_generica()
 
 
 def mensagem_erro_interno(codigo_log: str) -> str:

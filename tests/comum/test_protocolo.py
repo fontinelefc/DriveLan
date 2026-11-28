@@ -18,6 +18,8 @@ from drivelan.comum.protocolo import (
     formatar_data_iso,
     ler_data_iso,
     mensagem_erro_interno,
+    mensagem_generica,
+    mensagem_ou_generica,
     mensagem_padrao,
 )
 
@@ -167,3 +169,13 @@ def test_tipos_de_evento_da_secao_23_5() -> None:
         "edicao_liberada",
         "conteudo_alterado",
     }
+
+
+def test_mensagem_generica_da_secao_19_1_4() -> None:
+    assert mensagem_generica() == (
+        "Não foi possível concluir a ação. Tente novamente. Se o problema continuar, procure o TI."
+    )
+    assert mensagem_ou_generica(CodigoErro.NAO_ENCONTRADO) == mensagem_generica()
+    assert mensagem_ou_generica(CodigoErro.ACESSO_NEGADO) == (
+        "Você não tem permissão para esta ação."
+    )

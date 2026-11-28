@@ -499,3 +499,36 @@ def test_falha_no_meio_do_despejo_nao_duplica_linhas(tmp_path: Path, relogios: R
     assert log.tentar_novamente() is True
     assert _ler(pasta, date(2026, 11, 30)).count("de novembro") == 1
     assert _ler(pasta, date(2026, 12, 1)).count("de dezembro") == 1
+
+
+# ---------------------------------------------------------------- espelho no terminal (FSD 4.1)
+
+
+def test_espelho_recebe_copia_de_cada_evento(tmp_path: Path, relogios: Relogios) -> None:
+    espelho = io.StringIO()
+    log = LogErros(
+        tmp_path,
+        relogio=relogios.parede,
+        relogio_monotonico=relogios.mono,
+        saida_erro=io.StringIO(),
+        espelho=espelho,
+    )
+    log.erro("servico", "Falha qualquer", {"pin": "1234"})
+    arquivo = _ler(tmp_path, date(2026, 11, 12))
+    assert espelho.getvalue() == arquivo
+    assert "1234" not in espelho.getvalue()
+
+
+def test_espelho_nao_recebe_nada_com_log_desligado(tmp_path: Path, relogios: Relogios) -> None:
+    espelho = io.StringIO()
+    log = LogErros(tmp_path, ativo=False, relogio=relogios.parede, espelho=espelho)
+    log.erro("servico", "Falha qualquer")
+    assert espelho.getvalue() == ""
+
+
+def test_espelho_fechado_nao_impede_a_gravacao(tmp_path: Path, relogios: Relogios) -> None:
+    espelho = io.StringIO()
+    espelho.close()
+    log = LogErros(tmp_path, relogio=relogios.parede, espelho=espelho)
+    log.erro("servico", "Falha qualquer")
+    assert "Falha qualquer" in _ler(tmp_path, date(2026, 11, 12))

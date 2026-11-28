@@ -1,1 +1,1 @@
-"""Agendador e tarefas periódicas (FSD 6.1). Implementado na Fase 5."""
+"""Agendador e tarefas periódicas do serviço (FSD 5.3 e 6.1)."""
